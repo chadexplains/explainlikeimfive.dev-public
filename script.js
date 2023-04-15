@@ -10,7 +10,7 @@ function startRecording() {
         recorder = RecordRTC(stream, { type: 'video' }); // Create a recorder instance
         recorder.startRecording(); // Start recording
 
-        setTimeout(()=>{stopRecording(); stream.stop();} , 10000);
+        setTimeout(()=>{stopRecording(); stream.stop();} , 2000);
     })
     .catch(function (error) {
         console.error('Error accessing screen:', error);
@@ -20,14 +20,26 @@ function startRecording() {
 function stopRecording() {
     recorder.stopRecording(() => {
         const recordedBlob = recorder.getBlob();
-        const downloadLink = document.createElement("a");
-        downloadLink.href = URL.createObjectURL(recordedBlob);
-        downloadLink.download = 'recordedVideo.webm';
-        document.body.appendChild(downloadLink);
-
-        downloadLink.click();
-
-        downloadLink.parentNode.removeChild(downloadLink);
-        });
         
-    };
+        // Create a FormData object to send the recordedBlob as a file
+        const formData = new FormData();
+        formData.append('video', recordedBlob, 'recordedVideo.webm');
+
+        // Make a POST request to your Flask API endpoint
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Video uploaded successfully');
+            } else {
+                console.error('Failed to upload video');
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading video:', error);
+        });
+    });
+};
+
