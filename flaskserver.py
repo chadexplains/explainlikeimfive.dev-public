@@ -1,9 +1,15 @@
-from flask import Flask, request, jsonify
+import os
+from flask import Flask, request, jsonify, render_template
 import requests
+from upload_to_youtube import upload_video_to_youtube
 
 app = Flask(__name__)
 
-@app.route('/upload', methods=['POST'])
+@app.route('/')
+def home():
+   return render_template('index.html')
+
+@app.route('/api/upload', methods=['POST'])
 def upload_video():
     if 'video' not in request.files:
         return jsonify({'error': 'No video file provided'}), 400
@@ -11,17 +17,9 @@ def upload_video():
     video_file = request.files['video']
 
     # Save the video file locally
-    video_file.save('recordedVideo.webm')
-
-    # Send the video file to the Loom API
-    url = 'https://api.loom.com/v1/videos'
-    headers = {
-        'Authorization': 'Bearer YOUR_LOOM_API_TOKEN',
-    }
-    files = {
-        'video': open('recordedVideo.webm', 'rb')
-    }
-    response = requests.post(url, headers=headers, files=files)
+    video_file.save('recordedVideo.mkv')
+    response = upload_video_to_youtube(
+        'recordedVideo.mkv', 'Video Title', 'Video Description', 'unlisted')
 
     # Clean up the local video file
     video_file.close()
@@ -33,6 +31,7 @@ def upload_video():
     else:
         # Video upload failed
         return jsonify({'error': 'Failed to upload video'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
