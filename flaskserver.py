@@ -9,6 +9,7 @@ from get_authenticated_service import get_authenticated_service
 from credentials_to_dict import credentials_to_dict
 
 app = Flask(__name__)
+app.secret_key = "secret"
 CORS(app)
 
 @app.route('/')
@@ -25,7 +26,7 @@ def upload_video():
     # Save the video file locally
     video_file.save('recordedVideo.mkv')
     if 'credentials' not in session:
-        return redirect('/api/authorize')
+        return redirect('/authorize')
 
     credentials = Credentials(session['credentials'])
 
@@ -46,7 +47,7 @@ def upload_video():
         return jsonify({'error': 'Failed to upload video'}), 500
 
 
-@app.route('/api/authorize')
+@app.route('/authorize')
 def authorize():
     flow = get_authenticated_service()
 
@@ -67,7 +68,7 @@ def authorize():
 
     return redirect(authorization_url) 
 
-@app.route('/api/oauth2callback')
+@app.route('/oauth2callback')
 def oauth2callback():
     # Specify the state when creating the flow in the callback so that it can
     # verified in the authorization server response.
@@ -94,5 +95,4 @@ def oauth2callback():
 
 
 if __name__ == '__main__':
-    app.secret_key = "secret"
     app.run(debug=True)
