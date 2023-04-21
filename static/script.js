@@ -3,6 +3,24 @@ const STREAM_TIME = 10000;
 function startRecording() {
     navigator.mediaDevices.getDisplayMedia({ video: true}) // Capture screen
     .then(async (displayStream) => {
+
+        // If display surface is not monitor, it means user chose something other than entire screen
+        let chromiumdisplaySurface = displayStream.getVideoTracks()[0].getSettings().displaySurface;
+        let firefoxdisplaySurface = displayStream.getVideoTracks()[0].label;
+
+        // Check for Chrome
+        if (navigator.userAgent.includes('Chrome') && chromiumdisplaySurface !== "monitor") {
+            displayStream.getVideoTracks().forEach(track => track.stop());
+            throw 'Selection of entire screen mandatory!';
+        }
+
+        // Check for Firefox
+        else if (navigator.userAgent.includes('Firefox') && firefoxdisplaySurface !== 'Primary Monitor'){
+            displayStream.getVideoTracks().forEach(track => track.stop());
+            throw 'Selection of entire screen mandatory!';
+        }
+
+
         [videoTrack] = displayStream.getVideoTracks();
         const audioStream = await navigator.mediaDevices.getUserMedia({audio: true}).catch(e => {throw e});
         [audioTrack] = audioStream.getAudioTracks();
@@ -13,7 +31,7 @@ function startRecording() {
         setTimeout(()=>{stopRecording(); stream.stop();} , STREAM_TIME);
     })
     .catch(function (error) {
-        console.error('Error accessing screen:', error);
+        alert('Error accessing screen. Please set permissions to view Entire Screen');
     });
 }
 
