@@ -1,5 +1,5 @@
 let recorder; // Global variable to store the recorder instance
-
+const STREAM_TIME = 10000;
 function startRecording() {
     navigator.mediaDevices.getDisplayMedia({ video: true}) // Capture screen
     .then(async (displayStream) => {
@@ -10,7 +10,7 @@ function startRecording() {
         recorder = RecordRTC(stream, { type: 'video' }); // Create a recorder instance
         recorder.startRecording(); // Start recording
 
-        setTimeout(()=>{stopRecording(); stream.stop();} , 2000);
+        setTimeout(()=>{stopRecording(); stream.stop();} , STREAM_TIME);
     })
     .catch(function (error) {
         console.error('Error accessing screen:', error);
@@ -20,7 +20,7 @@ function startRecording() {
 function stopRecording() {
     recorder.stopRecording(() => {
         const recordedBlob = recorder.getBlob();
-        
+
         // Create a FormData object to send the recordedBlob as a file
         const formData = new FormData();
         formData.append('video', recordedBlob, 'recordedVideo.webm');
